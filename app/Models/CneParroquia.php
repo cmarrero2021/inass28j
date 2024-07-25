@@ -32,12 +32,6 @@ class CneParroquia extends Model
 	use SoftDeletes;
 	protected $table = 'cne_parroquias';
 
-	protected $casts = [
-		'estado_id' => 'int',
-		'municipio_id' => 'int',
-		'parroquia_id' => 'int'
-	];
-
 	protected $fillable = [
 		'estado_id',
 		'municipio_id',

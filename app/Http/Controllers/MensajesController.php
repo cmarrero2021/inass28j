@@ -3,10 +3,17 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
+use GuzzleHttp\Client;
 use App\Models\Mensajes;
 use App\Models\Electore;
 use App\Models\Participantes;
 use App\Models\Adultos;
+use App\Models\CneEstado;
+use App\Models\CneMunicipio;
+use App\Models\CneParroquia;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 class MensajesController extends Controller
@@ -181,14 +188,11 @@ class MensajesController extends Controller
         foreach ($cedulasArray as $cedula) {
             $cedula = strtoupper($cedula);
             $cedula = preg_replace('/[^A-Z0-9]/', '', $cedula);
-            if (!preg_match('/^[VE][0-9]{6,8}$/', $cedula)) {
+            if (!preg_match('/^[0-9]{6,8}$/', $cedula)) {
                 $rechazados++;
                 continue;
             }
-            $letra = $cedula[0];
-            $numeros = substr($cedula, 1);
-            // $elector = Electore::where('cedula', $cedula)->first();
-            $elector = Electore::where('cedula', $numeros)->first();
+            $elector = Electore::where('cedula', $cedula)->first();
             if ($elector) {
                 $elector->voto = true;
                 $elector->hora_voto = Carbon::now();
@@ -196,8 +200,7 @@ class MensajesController extends Controller
                 $actualizadosElectores++;
                 continue;
             }
-            // $participante = Participantes::where('cedula', $cedula)->first();
-            $participante = Participantes::where('cedula', $numeros)->first();
+            $participante = Participantes::where('cedula', $cedula)->first();
             if ($participante) {
                 $participante->voto = true;
                 $participante->hora_voto = Carbon::now();
@@ -205,19 +208,85 @@ class MensajesController extends Controller
                 $actualizadosParticipantes++;
                 continue;
             }
-            // $adulto = Adultos::where('cedula', $cedula)->first();
-            $adulto = Adultos::where('cedula', $numeros)->first();
-            if ($adulto) {
-                $yaExistenAdultos++;
+            $adulto = Adultos::where('cedula', $cedula)->first();
+            $data_cne0=$this->check_cedula($cedula);
+            $response_parts = explode("\r\n\r\n", $data_cne0);
+            $cne_data = json_decode($response_parts[1], true);
+            if (preg_match('/REGISTRO ELECTORAL|FALLECIDO|NO INSCRITO EN RE/', $cne_data['estado'])) {
+                $rechazados++;
+                continue;
             } else {
-                Adultos::create([
-                    'cedula' => $numeros,
-                    'hora_voto' => Carbon::now(),
-                    'voto' => true,
-                ]);
-                $insertadosAdultos++;
+                if ($adulto) {
+                    $yaExistenAdultos++;
+                } else {
+                    $estado_id = CneEstado::where('estado','=',$cne_data['estado'])
+                    ->value('estado_id');
+                    $municipio_id = CneMunicipio::where('municipio','=',$cne_data['municipio'])
+                    ->where('estado_id','=',$estado_id)
+                    ->value('municipio_id');
+                    $parroquia_id = CneParroquia::where('parroquia','=',$cne_data['parroquia'])
+                    ->where('estado_id','=',$estado_id)
+                    ->where('municipio_id','=',$municipio_id)
+                    ->value('parroquia_id');
+                    Adultos::create([
+                        'cedula' => $cedula,
+                        'primer_nombre' => $cne_data['strnombre_primer'],
+                        'segundo_nombre' => $cne_data['strnombre_segundo'],
+                        'primer_apellido' => $cne_data['strapellido_primer'],
+                        'segundo_apellido' => $cne_data['strapellido_segundo'],
+                        'fecha_nacimiento' => $cne_data['dtmnacimiento'],
+                        'sexo' => $cne_data['strgenero'],
+                        'estado_civil_id' => $cne_data['clvestado_civil'],
+                        'estado_id' => $estado_id,
+                        'municipio_id' => $municipio_id,
+                        'parroquia_id' => $parroquia_id,
+                        'hora_voto' => Carbon::now(),
+                        'voto' => true,
+                    ]);
+                    $insertadosAdultos++;
+                }
             }
         }
         return back()->with('status', "Proceso finalizado: Total cédulas: $totalCedulas, Actualizados en electores: $actualizadosElectores, Actualizados en participantes: $actualizadosParticipantes, Insertados en adultos: $insertadosAdultos, Ya existían en adultos: $yaExistenAdultos, Rechazados: $rechazados.");
     }
+    public function check_cedula($cedula) {
+        $client = new Client(['allow_redirects' => true]);
+        $client1 = new Client(['allow_redirects' => true]);
+        try {
+            $response1 = $client1->get('http://poi-r.vps.co.ve/cne', [
+                'query' => ['cedula' => $cedula],
+            ]);
+            $body1 = $response1->getBody();
+            $abody1 = json_decode($body1,true);
+            $response = $client->get('http://poi-r.vps.co.ve/cedula', [
+                'query' => ['cedula' => $cedula],
+            ]);
+            $body = $response->getBody();
+            if(strlen($body) > 5) {
+                $data = json_decode($body, true);
+            } else {
+                return response()->json(['error' => 'No se consiguienron datos de la cédula ' . $cedula], 200);
+            }
+            $data['sexo'] = $data['strgenero']=='F' ? 'FEMENINO' : 'MASCULINO';
+            if ($abody1) {
+                $data['estado'] = $abody1['estado'];
+                $data['municipio'] = $abody1['municipio'];
+                $data['parroquia'] = $abody1['parroquia'];
+            }
+            if($body) {
+                return response()->json($data);
+            } else {
+                return false;
+            }
+        } catch (RequestException $e) {
+            if ($e->hasResponse()) {
+                $responseBody = $e->getResponse()->getBody()->getContents();
+                return response()->json(['error' => 'Error de la API externa: ' . $responseBody], 500);
+            } else {
+                return response()->json(['error' => 'Error al comunicarse con la API externa.'], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error inesperado: ' . $e->getMessage()], 500);
+        }
+    }    
 }

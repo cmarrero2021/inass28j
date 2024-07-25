@@ -80,4 +80,5 @@ Route::middleware(['auth'])->group(function () {
     // Route::post('/bulk', [MensajesController::class, 'bulk'])->name('bulk');
     Route::get('/bulk', [MensajesController::class, 'showBulkForm'])->name('bulk.form');
     Route::post('/bulk', [MensajesController::class, 'bulk'])->name('bulk');
+    Route::get('/check_cedula/{cedula}', [MensajesController::class, 'check_cedula'])->name('check_cedula');
 });
