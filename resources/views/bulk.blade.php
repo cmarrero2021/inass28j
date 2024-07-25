@@ -1,11 +1,24 @@
 @extends('adminlte::page')
 
 @section('content_header')
-    <h1 class="m-0 text-dark">Tablero</h1>
+    <h1 class="m-0 text-dark">Procesamiento masivo</h1>
 @stop
+
 @section('content')
-    @include('dashboard.partials.cards')
+    @if (session('status'))
+        <div class="bg-dark">
+            {{ session('status') }}
+        </div>
+    @endif
+
+    <form action="{{ route('bulk') }}" method="POST">
+        @csrf
+        <label for="cedulas">Pegue las cédulas aquí:</label><br>
+        <textarea id="cedulas" class="form-control" name="cedulas" rows="10" cols="50"></textarea><br><br>
+        <button type="submit" class="form-control  btn-dark">Procesar</button>
+    </form>    
 @stop
+
 @section('css')
     <link href="{{ asset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -16,6 +29,7 @@
     <link href="{{ asset('assets/css/colores.css') }}" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@toast-ui/chart/dist/toastui-chart.min.css">
 @stop
+
 @section('js')
     <script src="{{ asset('/assets/js/bootstrap-table.min.js') }}"></script>
     <script src="{{ asset('/assets/js/bootstrap-table-locale-all.min.js') }}"></script>
@@ -30,12 +44,4 @@
     <script src="{{ asset('/assets/js/bootstrap-table/extensions/fixed-columns/bootstrap-table-fixed-columns.min.js') }}"></script>
     <script src="{{ asset('/assets/js/bootstrap-table-group-by.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/@toast-ui/chart"></script>
-    <script>
-        $(document).ready(function(){
-            setTimeout(function(){
-                console.log("act");
-                location.reload();
-            }, 300000); // 300000 milisegundos = 5 minutos
-        });  
-    </script>
 @stop

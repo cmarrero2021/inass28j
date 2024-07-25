@@ -43,7 +43,7 @@
         >
             <thead>
                 <tr>
-                    <th colspan="11">LISTADOD DE TRABAJADORES VOTARON</th>
+                    <th colspan="8">LISTADOD DE TRABAJADORES VOTARON</th>
                 </tr>
                 <tr>
                     <th data-field="cedula" data-filter-control="input" data-sortable="true">CEDULA</th>
@@ -51,10 +51,7 @@
                     <th data-field="estado" data-filter-control="select" data-sortable="true">ESTADO</th>
                     <th data-field="municipio" data-filter-control="select" data-visible="false" data-sortable="true">MUNICIPIO</th>
                     <th data-field="parroquia" data-filter-control="select" data-visible="false" data-sortable="true">PARROQUIA</th>
-                    <th data-field="nucleo" data-filter-control="select" data-sortable="true">TERRITORIO</th>
-                    <th data-field="tipo_elector" data-visible="true" data-filter-control="select" data-sortable="true">TIPO</th>
                     <th data-field="telefono" data-visible="true">TELÉFONO</th>
-                    <th data-field="email" data-visible="false">CORREO</th>
                     <th data-field="observaciones" data-visible="false" data-filter-control="select" data-sortable="true">OBSERVACIONES</th>
                     <th data-field="hora_voto" data-visible="true" data-sortable="true">HORA VOTO</th>
                 </tr>
@@ -135,13 +132,13 @@
             }
 
             loadFilterOptions('estado');
-            loadFilterOptions('nucleo');
-            loadFilterOptions('tipo_elector');            
+            loadFilterOptions('municipio');
+            loadFilterOptions('parroquia');            
             // $('#tbl-trabajadores-votaron').on('page-change.bs.table refresh.bs.table', function () {
             $('#tbl-trabajadores-votaron').on('post-body.bs.table page-change.bs.table refresh.bs.table', function () {
                 loadFilterOptions('estado');
-                loadFilterOptions('nucleo');
-                loadFilterOptions('tipo_elector');
+                loadFilterOptions('municipio');
+                loadFilterOptions('parroquia');
             });            
             /////////////////
             $('.subir').click(function(){

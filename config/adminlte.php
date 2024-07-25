@@ -347,6 +347,12 @@ return [
             ],
         ],        
         [
+            'text'    => 'Procesamiento masivo',
+            'icon'    => 'fas fa-cubes',
+            'url'     => 'bulk',
+            'can'     => 'bulk',
+        ],
+        [
             'text'    => 'Estadísticas',
             'icon'    => 'fas fa-window-restore',
             'url'     => 'estadisticas_movilizacion',

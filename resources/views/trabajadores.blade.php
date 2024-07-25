@@ -66,32 +66,10 @@
                     </div>
                     <hr/>
                     <div class="row">
-                        <div class="col-xs-12 col-sm-12 col-md-8">
-                            <label>TERRITORIO<span class="requerido">*</span></label><br/>
-                            <label id="lbl_nucleo" class="ver-campo"></label>
-                            <select id="selNucleo" class="editar-campo form-control">
-                                <option value="">Seleccione</option>                                
-                            </select>
-                        </div>
-                        <div class="col-xs-12 col-sm-12 col-md-4">
-                            <label>TIPO<span class="requerido">*</span></label><br/>
-                            <label id="lbl_tipo" class="ver-campo"></label>
-                            <select id="selTipo" class="editar-campo form-control">
-                                <option value="">Seleccione</option>                                
-                            </select>
-                        </div>
-                    </div>
-                    <hr/>
-                    <div class="row">
                         <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
                             <label>TELÉFONO</label><br/>
                             <label id="lbl_telefono" class="ver-campo"></label>
                             <input id="txt_telefono" class="editar-campo form-control">
-                        </div>
-                        <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
-                            <label>CORREO</label><br/>
-                            <label id="lbl_email" class="ver-campo"></label>
-                            <input id="txt_email" class="editar-campo form-control">
                         </div>
                     </div>
                     <div class="row">
@@ -151,7 +129,7 @@
         >
             <thead>
                 <tr>
-                    <th colspan="14">LISTADOD DE TRABAJADORES</th>
+                    <th colspan="11">LISTADOD DE TRABAJADORES</th>
                 </tr>
                 <tr>
                     <th data-formatter="operateFormatter" data-events="operateEvents"></th>
@@ -161,11 +139,8 @@
                     <th data-field="estado" data-filter-control="select" data-sortable="true">ESTADO</th>
                     <th data-field="municipio" data-filter-control="select" data-visible="false" data-sortable="true">MUNICIPIO</th>
                     <th data-field="parroquia" data-filter-control="select" data-visible="false" data-sortable="true">PARROQUIA</th>
-                    <th data-field="nucleo" data-filter-control="select" data-sortable="true">TERRITORIO</th>
-                    <th data-field="tipo_elector" data-visible="true" data-filter-control="select" data-sortable="true">TIPO</th>
                     <th data-field="telefono" data-visible="true">TELÉFONO</th>
-                    <th data-field="email" data-visible="false">CORREO</th>
-                    <th data-field="voto"  data-visible="true" data-filter-control="select" data-sortable="true">VOTÓ</th>
+                    <th data-field="voto" data-visible="true" data-filter-control="select" data-sortable="true">VOTÓ</th>
                     <th data-field="observaciones" data-visible="false" data-filter-control="select" data-sortable="true">OBSERVACIONES</th>
                     <th data-field="hora_voto" data-visible="true" data-sortable="true">HORA VOTO</th>
                 </tr>
@@ -227,9 +202,7 @@
                     success: function(data) {
                         var selectControl = $('select.bootstrap-table-filter-control-' + field);
                         if (selectControl.length) {
-                            // Guardar la opción actualmente seleccionada
                             var selectedOption = selectControl.val();
-                            
                             selectControl.empty();
                             selectControl.append($('<option>', { value: '', text: 'Todos' }));
                             $.each(data.options, function(key, value) {
@@ -238,8 +211,6 @@
                                     text: value
                                 }));
                             });
-
-                            // Restaurar la opción seleccionada
                             selectControl.val(selectedOption);
                         }
                     }
@@ -247,13 +218,13 @@
             }
 
             loadFilterOptions('estado');
-            loadFilterOptions('nucleo');
-            loadFilterOptions('tipo_elector');            
+            loadFilterOptions('municipio');
+            loadFilterOptions('parroquia');            
             // $('#tbl-trabajadores').on('page-change.bs.table refresh.bs.table', function () {
             $('#tbl-trabajadores').on('post-body.bs.table page-change.bs.table refresh.bs.table', function () {
                 loadFilterOptions('estado');
-                loadFilterOptions('nucleo');
-                loadFilterOptions('tipo_elector');
+                loadFilterOptions('municipio');
+                loadFilterOptions('parroquia');
             });            
             /////////////////
             $('.subir').click(function(){
@@ -274,28 +245,28 @@
                 success: function (response) {
                     $.each(JSON.parse(response['estados']), function (index, item) {
                     $('#selEstado').append($('<option>', { 
-                        value: item.id,
+                        value: item.estado_id,
                         text : item.estado 
                     }));
                 });
-                $.each(JSON.parse(response['nucleos']), function (index, item) {
-                    $('#selNucleo').append($('<option>', { 
-                        value: item.id,
-                        text : item.nucleo 
-                    }));
-                });
-                $.each(JSON.parse(response['tipos']), function (index, item) {
-                    if (item.id != 6) {
-                    $('#selTipo').append($('<option>', { 
-                            value: item.id,
-                            text : item.tipo_elector 
-                        }));
-                    }
-                });                        
-                $('#selFormacion').append($('<option>', { 
-                    value: 1,
-                    text : 'NINGUNA' 
-                }));
+                // $.each(JSON.parse(response['nucleos']), function (index, item) {
+                //     $('#selNucleo').append($('<option>', { 
+                //         value: item.id,
+                //         text : item.nucleo 
+                //     }));
+                // });
+                // $.each(JSON.parse(response['tipos']), function (index, item) {
+                //     if (item.id != 6) {
+                //     $('#selTipo').append($('<option>', { 
+                //             value: item.id,
+                //             text : item.tipo_elector 
+                //         }));
+                //     }
+                // });                        
+                // $('#selFormacion').append($('<option>', { 
+                //     value: 1,
+                //     text : 'NINGUNA' 
+                // }));
             }});
             $('[name="btnAdd"]').removeClass('btn-secondary');
             $('[name="btnAdd"]').addClass('btn-success');
@@ -438,10 +409,10 @@
                     $("#lbl_estado").html(row["estado"]);
                     $("#lbl_municipio").html(row["municipio"]);
                     $("#lbl_parroquia").html(row["parroquia"]);
-                    $("#lbl_nucleo").html(row["nucleo"]);
-                    $("#lbl_tipo").html(row["tipo_elector"]);
-                    $("#lbl_formacion").html(row["formacion"]);
-                    $("#lbl_email").html(row["email"]);
+                    // $("#lbl_nucleo").html(row["nucleo"]);
+                    // $("#lbl_tipo").html(row["tipo_elector"]);
+                    // $("#lbl_formacion").html(row["formacion"]);
+                    // $("#lbl_email").html(row["email"]);
                     $("#lbl_telefono").html(row["telefono"]);
                     $("#lbl_observaciones").html(row["observaciones"]);
                     $("#dismiss").show();
@@ -474,10 +445,10 @@
                         },
                         dataType: "JSON",
                         success: function (response) {
-                            $("#selNucleo").val(1);
-                            $("#selNucleo").val(response[0].nucleo_id);
-                            $("#selTipo").val(response[0].tipo_elector_id);
-                            $("#selFormacion").val(1);
+                            // $("#selNucleo").val(1);
+                            // $("#selNucleo").val(response[0].nucleo_id);
+                            // $("#selTipo").val(response[0].tipo_elector_id);
+                            // $("#selFormacion").val(1);
                             $("#selEstado").val(response[0].cne_estado_id).trigger('change');
                             setTimeout(() => {
                                 $("#selMunicipio").val(response[0].cne_municipio_id).trigger('change');
@@ -589,11 +560,11 @@
                     cne_estado_id: $("#selEstado").val(),
                     cne_municipio_id: $("#selMunicipio").val(),
                     cne_parroquia_id: $("#selParroquia").val(),
-                    nucleo_id: $("#selNucleo").val(),
-                    tipo_elector_id: $("#selTipo").val(),
-                    formacion_id: $("#selFormacion").val(),
+                    // nucleo_id: $("#selNucleo").val(),
+                    // tipo_elector_id: $("#selTipo").val(),
+                    // formacion_id: $("#selFormacion").val(),
                     telefono: $("#txt_telefono").val(),
-                    email: $("#txt_email").val(),
+                    // email: $("#txt_email").val(),
                     observaciones: $("#txt_observaciones").val(),
                 }
                 if(data.voto == "SI" && data.hora_voto =="") {
@@ -643,11 +614,11 @@
                     cne_estado_id: $("#selEstado").val(),
                     cne_municipio_id: $("#selMunicipio").val(),
                     cne_parroquia_id: $("#selParroquia").val(),
-                    nucleo_id: $("#selNucleo").val(),
-                    tipo_elector_id: $("#selTipo").val(),
-                    formacion_id: $("#selFormacion").val(),
+                    // nucleo_id: $("#selNucleo").val(),
+                    // tipo_elector_id: $("#selTipo").val(),
+                    // formacion_id: $("#selFormacion").val(),
                     telefono: $("#txt_telefono").val(),
-                    email: $("#txt_email").val(),
+                    // email: $("#txt_email").val(),
                     observaciones: $("#txt_observaciones").val(),
                 };
                 $.ajax({

@@ -15,8 +15,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * Class CneMunicipio
  * 
  * @property int $id
- * @property int $estado_id
- * @property int $municipio_id
+ * @property string $estado_id
+ * @property string $municipio_id
  * @property string $municipio
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -33,10 +33,10 @@ class CneMunicipio extends Model
 	use SoftDeletes;
 	protected $table = 'cne_municipios';
 
-	protected $casts = [
-		'estado_id' => 'int',
-		'municipio_id' => 'int'
-	];
+	// protected $casts = [
+	// 	'estado_id' => 'int',
+	// 	'municipio_id' => 'int'
+	// ];
 
 	protected $fillable = [
 		'estado_id',

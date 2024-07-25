@@ -40,18 +40,6 @@ class TrabajadorController extends Controller
         $limit = $request->input('limit', 10);
         $user = Auth::user();
         $query = Vtrabajador::query();
-        if (!$user->hasRole('Admin')) {
-            $nucleos = DB::table('users_nucleos')
-            ->select('nucleo_id')
-            ->where('user_id','=',$user->id)
-            ->get();
-            $anid = [];
-            foreach ($nucleos as $key => $value) {
-                array_push($anid, $value->nucleo_id);
-            }
-            $query->whereIn('nucleo_id',$anid);
-        }
-        
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($query) use ($user,$search) {
@@ -62,20 +50,17 @@ class TrabajadorController extends Controller
                     ->orWhere('estado', 'Ilike', '%' . $search . '%')
                     ->orWhere('municipio', 'Ilike', '%' . $search . '%')
                     ->orWhere('parroquia', 'Ilike', '%' . $search . '%')
-                    ->orWhere('nucleo', 'Ilike', '%' . $search . '%')
-                    ->orWhere('tipo_elector', 'Ilike', '%' . $search . '%')
                     ->orWhere('telefono', 'Ilike', '%' . $search . '%')
-                    ->orWhere('email', 'Ilike', '%' . $search . '%')
                     ->orWhere('voto', 'Ilike', '%' . $search . '%')
                     ->orWhere('hora_voto', 'Ilike', '%' . $search . '%')
                     ->orWhere('observaciones', 'Ilike', '%' . $search . '%')
                 ;
             });            
-        } else {
-            if ($request->has('filter')) {
-                $filters = json_decode($request->filter, true);foreach ($filters as $column => $value) {
-                    $query->where($column, 'like', '%' . $value . '%');
-                }
+        }
+        if ($request->has('filter')) {
+            $filters = json_decode($request->filter, true);
+            foreach ($filters as $column => $value) {
+                $query->where($column, 'like', '%' . $value . '%');
             }
         }
         $total = $query->count();
@@ -96,43 +81,27 @@ class TrabajadorController extends Controller
         $limit = $request->input('limit', 10);
         $user = Auth::user();
         $query = VelectoresVotaron::query();
-        if (!$user->hasRole('Admin')) {
-            $nucleos = DB::table('users_nucleos')
-            ->select('nucleo_id')
-            ->where('user_id','=',$user->id)
-            ->get();
-            $anid = [];
-            foreach ($nucleos as $key => $value) {
-                array_push($anid, $value->nucleo_id);
-            }
-            $query->whereIn('nucleo_id',$anid);
-        }
-        
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($query) use ($user,$search) {
                 $query
                     ->orWhere('nombres', 'Ilike', '%' . $search . '%')
                     ->orWhere('cedula', 'Ilike', '%' . $search . '%')
-                    ->orWhere('cedula', 'Ilike', '%' . $search . '%')
                     ->orWhere('estado', 'Ilike', '%' . $search . '%')
                     ->orWhere('municipio', 'Ilike', '%' . $search . '%')
                     ->orWhere('parroquia', 'Ilike', '%' . $search . '%')
-                    ->orWhere('nucleo', 'Ilike', '%' . $search . '%')
-                    ->orWhere('tipo_elector', 'Ilike', '%' . $search . '%')
                     ->orWhere('telefono', 'Ilike', '%' . $search . '%')
-                    ->orWhere('email', 'Ilike', '%' . $search . '%')
                     ->orWhere('hora_voto', 'Ilike', '%' . $search . '%')
                     ->orWhere('observaciones', 'Ilike', '%' . $search . '%')
                 ;
             });            
-        } else {
-            if ($request->has('filter')) {
-                $filters = json_decode($request->filter, true);foreach ($filters as $column => $value) {
-                    $query->where($column, 'like', '%' . $value . '%');
-                }
+        } 
+        if ($request->has('filter')) {
+            $filters = json_decode($request->filter, true);foreach ($filters as $column => $value) {
+                $query->where($column, 'like', '%' . $value . '%');
             }
         }
+        
         $total = $query->count();
         if ($request->has('limit')) {
             $trabajadores = $query->skip($offset)->take($limit)->get();
@@ -165,15 +134,10 @@ class TrabajadorController extends Controller
             'cne_estado_id' => 'required',
             'cne_municipio_id' => 'required',
             'cne_parroquia_id' => 'required',
-            'nucleo_id' => 'required',
-            'tipo_elector_id' => 'required',
-            'formacion_id' => 'required',
             'telefono' => 'required|numeric',
-            'email' => 'sometimes|nullable|email',
         ], [
             'required' => 'El campo :attribute es obligatorio.',
             'numeric' => 'El campo :attribute debe ser numérico.',
-            'email' => 'El campo :attribute debe ser un correo válido.',
             'unique' => 'La :attribute ya está registrada.',
         ]);
         if ($validator->fails()) {
@@ -188,11 +152,6 @@ class TrabajadorController extends Controller
             'cne_estado_id' => $request->cne_estado_id,
             'cne_municipio_id' => $request->cne_municipio_id,
             'cne_parroquia_id' => $request->cne_parroquia_id,
-            'nucleo_id' => $request->nucleo_id,
-            'tipo_elector_id' => $request->tipo_elector_id,
-            'formacion_id' => $request->formacion_id,
-            'telefono' => $request->telefono,
-            'email' => $request->email,
         ];
         if ($request->has('observaciones')) {
             $datos['observaciones'] = $request->observaciones;
@@ -229,17 +188,14 @@ class TrabajadorController extends Controller
      * Update the specified resource in storage.
      */
     public function actualizar_trabajador(Request $request) {
+        $cedula = $request->input('cedula');
+        $elector = Electore::where('cedula', $cedula)->first();
         $validator = Validator::make($request->all(), [
-            'cedula' => 'required|numeric|unique:electores,cedula',
+            'cedula' => 'required|numeric|unique:electores,cedula,'.$elector->id,
             'nombres' => 'required',
             'cne_estado_id' => 'required',
             'cne_municipio_id' => 'required',
             'cne_parroquia_id' => 'required',
-            'nucleo_id' => 'required',
-            'tipo_elector_id' => 'required',
-            'formacion_id' => 'required',
-            'telefono' => 'required|numeric',
-            'email' => 'sometimes|nullable|email',
         ], [
             'required' => 'El campo :attribute es obligatorio.',
             'numeric' => 'El campo :attribute debe ser numérico.',
@@ -254,14 +210,11 @@ class TrabajadorController extends Controller
         $datos = [
             'voto' => $voto,
             'hora_voto' => $request->hora_voto,
+            'nombres' => $request->nombres,
             'cne_estado_id' => $request->cne_estado_id,
             'cne_municipio_id' => $request->cne_municipio_id,
             'cne_parroquia_id' => $request->cne_parroquia_id,
-            'nucleo_id' => $request->nucleo_id,
-            'tipo_elector_id' => $request->tipo_elector_id,
-            'formacion_id' => $request->formacion_id,
             'telefono' => $request->telefono,
-            'email' => $request->email,
         ];
         if ($request->has('observaciones')) {
             $datos['observaciones'] = $request->observaciones;
@@ -315,27 +268,14 @@ class TrabajadorController extends Controller
         $limit = $request->input('limit', 10);
         $user = Auth::user();
         $query = Vtrabajador::query();
-        $query->select('cedula','nombres','telefono','nucleo','hora_voto','observaciones');
+        $query->select('cedula','nombres','telefono','hora_voto','observaciones');
         $query->whereNull('voto');
-        if (!$user->hasRole('Admin')) {
-            $nucleos = DB::table('users_nucleos')
-            ->select('nucleo_id')
-            ->where('user_id','=',$user->id)
-            ->get();
-            $anid = [];
-            foreach ($nucleos as $key => $value) {
-                array_push($anid, $value->nucleo_id);
-            }
-            $query->whereIn('nucleo_id',$anid);
-        }
-        
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($query) use ($user,$search) {
                 $query
                     ->orWhere('cedula', 'Ilike', '%' . $search . '%')
                     ->orWhere('cedula', 'Ilike', '%' . $search . '%')
-                    ->orWhere('nucleo', 'Ilike', '%' . $search . '%')
                     ->orWhere('hora_voto', 'Ilike', '%' . $search . '%')
                     ->orWhere('observaciones', 'Ilike', '%' . $search . '%')
                 ;
@@ -361,7 +301,7 @@ class TrabajadorController extends Controller
     public function trab_filtros(Request $request)
     {
         $field = $request->input('field');
-        $options = Vtrabajador::distinct()->pluck($field);
+        $options = Vtrabajador::distinct()->orderBy($field)->pluck($field);
     
         $result = [];
         foreach ($options as $option) {

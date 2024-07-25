@@ -50,8 +50,8 @@ class HomeController extends Controller
         //     'nucleos',
         //     'estados',
         // ));
-        $movilizacion = Vmovilizacion::select('tipo','total','total_movilizados','total_pormovilizar')->where('tipo','=','total_electores')->get();
-        \Log::info($movilizacion[0]->tipo);
+        $movilizacion = Vmovilizacion::select('tipo','total','total_movilizados','total_pormovilizar')->get();
+        \Log::info($movilizacion);
         return response()
         ->view('home',compact('movilizacion'))
         ->header('Cache-Control', 'no-cache, no-store, must-revalidate')

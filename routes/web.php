@@ -77,5 +77,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/sms',[MensajesController::class,'index'])->name('admin.sms');
     Route::get('/mens_tabla',[MensajesController::class,'mens_tabla'])->name('mens_tabla');
-    
+    // Route::post('/bulk', [MensajesController::class, 'bulk'])->name('bulk');
+    Route::get('/bulk', [MensajesController::class, 'showBulkForm'])->name('bulk.form');
+    Route::post('/bulk', [MensajesController::class, 'bulk'])->name('bulk');
 });
