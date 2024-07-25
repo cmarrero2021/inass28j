@@ -1,0 +1,9 @@
+.bootstrap-table .table > tbody > tr.group-by.expanded,
+.bootstrap-table .table > tbody > tr.group-by.collapsed {
+  cursor: pointer;
+  text-align: center;
+}
+
+.bootstrap-table .table > tbody > tr.hidden {
+  display: none;
+}
